@@ -169,7 +169,7 @@ export AR='/usr/bin/ar' #by xql
 if [ -e $TARGET/bin/mpv ];then
     python TOOLS/osxbundle.py 'build/mpv'
     rm -rf "${TARGET}/app"
-    mv 'build/mpv.app' "${TARGET}/app"
+    mv "$PWD/build/mpv.app" "${TARGET}/app"
 else
 echo "Build failed. KABOOM"
 exit 1
