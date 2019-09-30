@@ -168,9 +168,13 @@ export AR='/usr/bin/ar' #by xql
 # check if build was successful
 if [ -e $TARGET/bin/mpv ];then
     python TOOLS/osxbundle.py 'build/mpv'
-    rm -rf "${TARGET}/app"
-    mv "$PWD/build/mpv.app" "${TARGET}/app"
+    app_dir="${TARGET}/app"
+    rm -rf "$app_dir"
+    mkdir -p "$app_dir"
+    cp -pRP "build/mpv.app" "${app_dir}/mpv.app"
+    echo "Congratulation!"
+    echo "Your mpv.app is in ${app_dir}"
 else
-echo "Build failed. KABOOM"
+echo "Build failed."
 exit 1
 fi
