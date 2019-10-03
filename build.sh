@@ -19,12 +19,72 @@ mkdir -p ${TARGET}
 mkdir -p ${CMPL}
 
 if [[ "$1" == 'clean' ]];then
-    if [[ "$2" == 'ressl' ]];then
+
+    if [[ "$2" == 'all' ]];then
+        rm -rf "${CMPL}"/*
+        rm -rf "${TARGET}"/*
+        echo "all lib clean succeed."
+        exit 0
+    elif [[ "$2" == 'yasm' ]];then
+        rm -rf "${CMPL}/"ysam*
+        rm "${TARGET}/bin/yasm" \
+           "${TARGET}/bin/vsyasm" \
+           "${TARGET}/bin/ytasm"
+        rm "${TARGET}/lib/libyasm.a"
+        rm -rf "${TARGET}/include/libyasm"
+        rm "${TARGET}/include/libyasm.h" \
+           "${TARGET}/include/libyasm-stdint.h"
+        echo 'yasm clean succeed.'
+        exit 0
+    elif [[ "$2" == 'pkg-config' ]];then
+        rm -rf "${CMPL}/"pkg-config*
+        rm "${TARGET}/bin/"*pkg-config
+        echo 'pkg-config clean succeed.'
+        exit 0
+    elif [[ "$2" == 'ressl' ]];then
         rm -rf "${CMPL}/"libressl*
-        rm "${TARGET}/bin/openssl"
-        rm -r "${TARGET}/include/openssl"
+        rm "${TARGET}/bin/openssl" "${TARGET}/bin/ocspcheck"
+        rm -rf "${TARGET}/etc"
+        rm -rf "${TARGET}/include/openssl"
         rm "${TARGET}/include/tls.h"
-        rm "${TARGET}/lib/libssl.a" "${TARGET}/lib/libcrypto.a" "${TARGET}/lib/libtls.a"
+        rm "${TARGET}/lib/"libcrypto.* "${TARGET}/lib/"libssl* "${TARGET}/lib/"libtls.*
+        echo 'libressl clean succeed.'
+        exit 0
+    elif [[ "$2" == 'ffmpeg' ]];then
+        cd "${CMPL}/ffmpeg"
+        git reset --hard HEAD && git clean -dfx
+        cd -
+        rm "${TARGET}/bin/ffmpeg" "${TARGET}/bin/ffprobe"
+        rm -rf "${TARGET}/include/libavcodec" \
+               "${TARGET}/include/libavformat" \
+               "${TARGET}/include/libavutil" \
+               "${TARGET}/include/libavdevice" \
+               "${TARGET}/include/libswresample" \
+               "${TARGET}/include/libswscale" \
+               "${TARGET}/include/libavfilter" \
+
+        rm "${TARGET}/include/tls.h"
+        rm "${TARGET}/lib/"libavcodec.* \
+           "${TARGET}/lib/"libavformat.* \
+           "${TARGET}/lib/"libavutil.* \
+           "${TARGET}/lib/"libavdevice.* \
+           "${TARGET}/lib/"libswresample.* \
+           "${TARGET}/lib/"libswscale.* \
+           "${TARGET}/lib/"libavfilter.*
+        echo 'ffmpeg clean succeed.'
+        exit 0
+    elif [[ "$2" == 'mpv' ]];then
+        cd "${CMPL}/mpv"
+        git reset --hard HEAD && git clean -dfx
+        cd -
+        rm -rf "${TARGET}/app"
+        rm "${TARGET}/lib/"libmpv.*
+        echo 'mpv clean succeed.'
+        exit 0
+    else
+        echo "clean usage:"
+        echo "\tsh $0 clean [all,yasm,pkg-config,ressl,ffmpeg,mpv]"
+        exit 0
     fi
 fi
 
@@ -32,7 +92,7 @@ echo "\n--------------------"
 echo "[*] check ysam"
 # next, yasm
 if [[ -f "${TARGET}/lib/libyasm.a" && -f "${TARGET}/bin/yasm" ]];then
-    echo "ysam exist!"
+    echo "✅ysam already exist!"
 else
     # should work with yasm-1.3.0.tar.gz
     echo "begin build ysam ...\n"
@@ -52,7 +112,7 @@ echo "\n--------------------"
 echo "[*] check pkg-config"
 # next, pkg-config
 if [[ -f "${TARGET}/bin/pkg-config" ]];then
-    echo "pkg-config exist!"
+    echo "✅pkg-config already exist!"
 else
     # should work with pkg-config-0.29.1.tar.gz
     echo "begin build pkg-config ...\n"
@@ -74,7 +134,7 @@ echo "\n--------------------"
 echo "[*] check libressl"
 # next, libressl
 if [[ -f "${TARGET}/lib/libtls.a" && -f "${TARGET}/lib/libssl.a"  && -f "${TARGET}/lib/libcrypto.a" ]];then
-    echo "libressl exist!"
+    echo "✅libressl already exist!"
 else
     # should work with libressl-2.4.2.tar.gz
     echo "begin build libressl ...\n"
@@ -97,7 +157,7 @@ echo "[*] check ffmpeg"
 # but as they are mostly used for encoding and mpv is a media player
 # there is no real need to do it. But you could, if you wanted to :-)
 if [[ -f "${TARGET}/lib/libavcodec.a" && -f "${TARGET}/lib/libavformat.a" && -f "${TARGET}/lib/libavutil.a" ]];then
-    echo "ffmpeg exist!"
+    echo "✅ffmpeg already exist!"
 else
     # should work with ffmpeg-4.1.tar.gz
     echo "begin build ffmpeg ...\n"
@@ -160,21 +220,21 @@ export AR='/usr/bin/ar' #by xql
     --disable-libass \
     --enable-lgpl \
     --enable-libmpv-static \
-    --disable-manpage-build
+    --disable-manpage-build \
+    --disable-tvos \
+    --disable-cplayer
 
 ./waf build
 ./waf install
 
-# check if build was successful
+# check if mpv exist ?
 if [ -e $TARGET/bin/mpv ];then
     python TOOLS/osxbundle.py 'build/mpv'
     app_dir="${TARGET}/app"
     rm -rf "$app_dir"
     mkdir -p "$app_dir"
     cp -pRP "build/mpv.app" "${app_dir}/mpv.app"
-    echo "Congratulation!"
     echo "Your mpv.app is in ${app_dir}"
-else
-echo "Build failed."
-exit 1
 fi
+
+echo "Congratulation!"
