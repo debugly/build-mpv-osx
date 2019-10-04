@@ -3,11 +3,14 @@ vendor='./base';
 mkdir -p $vendor;
 cd $vendor;
 
-yasmTag='1.3.0';
+yasmTag='1.3.0'
 pkgTag='0.29.2'
-resslTag='2.9.2';
-ffmpegTag='4.1'; ##snapshot
-mpvTag='0.29.1';
+resslTag='2.9.2'
+ffmpegTag='4.1' ##snapshot
+mpvTag='0.29.1'
+assTag='0.14.0'
+fribidiTag='1.0.7'
+freetypeTag='2.10.1'
 
 MPVSourceGit="https://gitee.com/mattreach/mpv_fork.git" # "https://github.com/mpv-player/mpv.git"
 FFSourceGit="https://gitee.com/mattreach/FFmpeg.git"
@@ -46,6 +49,42 @@ if [ ! -f $libressl ];then
     fi
 else
     echo "✅ ${libressl}"
+fi
+
+fribidi="fribidi-${fribidiTag}.tar.bz2"
+if [ ! -f $fribidi ];then
+    echo "======== download fribidi v${fribidiTag} ========"
+    curl -LO "https://github.com/fribidi/fribidi/releases/download/v1.0.7/${fribidi}"
+    if [[ $? != 0 ]];then
+        rm "${fribidi}"
+        exit 1
+    fi
+else
+    echo "✅ ${fribidi}"
+fi
+
+freetype="freetype-${freetypeTag}.tar.xz"
+if [ ! -f $freetype ];then
+    echo "======== download freetype v${freetypeTag} ========"
+    curl -LO "https://downloads.sourceforge.net/project/freetype/freetype2/2.10.1/${freetype}"
+    if [[ $? != 0 ]];then
+        rm "${freetype}"
+        exit 1
+    fi
+else
+    echo "✅ ${freetype}"
+fi
+
+libass="libass-${assTag}.tar.gz"
+if [ ! -f $libass ];then
+    echo "======== download libass v${assTag} ========"
+    curl -LO "https://github.com/libass/libass/releases/download/0.14.0/${libass}"
+    if [[ $? != 0 ]];then
+        rm "${libass}"
+        exit 1
+    fi
+else
+    echo "✅ ${libass}"
 fi
 
 # ffmpeg=ffmpeg-${ffmpegTag}.tar.gz
