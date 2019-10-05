@@ -53,6 +53,25 @@ function read_input(){
             rm "${TARGET}/lib/"libcrypto.* "${TARGET}/lib/"libssl* "${TARGET}/lib/"libtls.*
             echo 'libressl clean succeed.'
             exit 0
+        elif [[ "$2" == '--libfreetype' ]];then
+            rm -rf "${CMPL}/"freetype*
+            rm -rf "${TARGET}/include/"freetype*
+            rm "${TARGET}/lib/"libfreetype.*
+            echo 'libfreetype clean succeed.'
+            exit 0
+        elif [[ "$2" == '--libfribidi' ]];then
+            rm -rf "${CMPL}/"freetype*
+            rm -rf "${TARGET}/include/"fribidi*
+            rm "${TARGET}/lib/"libfribidi.*
+            rm "${TARGET}/bin/"fribidi*
+            echo 'libfribidi clean succeed.'
+            exit 0
+        elif [[ "$2" == '--libass' ]];then
+            rm -rf "${CMPL}/"libass*
+            rm -rf "${TARGET}/include/"ass*
+            rm "${TARGET}/lib/"libass.*
+            echo 'libass clean succeed.'
+            exit 0
         elif [[ "$2" == '--ffmpeg' ]];then
             cd "${CMPL}/ffmpeg"
             git reset --hard HEAD && git clean -dfx
@@ -91,12 +110,16 @@ function read_input(){
             echo 'Usage:'
             echo '\t$ sh '$cmdpath 'clean'
             echo 'Options:'
-            echo "\t--all        clean all libs、bins、headers."
-            echo "\t--mpv        just clean libmpv/mpv."
-            echo "\t--yasm       just clean yasm bin and lib."
-            echo "\t--ffmpeg     just clean ffpmeg libs."
-            echo "\t--libressl   just clean libressl."
-            echo "\t--pkg-config just clean pkg-config bin."
+            echo "\t--all          clean all libs、bins、headers."
+            echo "\t--mpv          just clean libmpv/mpv."
+            echo "\t--yasm         just clean yasm bin and lib."
+            echo "\t--pkg-config   just clean pkg-config bin."
+            echo "\t--ffmpeg       just clean ffpmeg libs."
+            echo "\t--libfreetype  just clean libfreetype."
+            echo "\t--libfribidi   just clean fribidi bin and lib."
+            echo "\t--libass       just clean libass."
+            echo "\t--libressl     just clean libressl."
+            
             exit 0
         fi
     elif [[ "$1" == '--help' ]];then
@@ -120,7 +143,8 @@ function read_input(){
             build_denpendents
             build_mpv
         fi
-
+    else
+        read_input '--help'
     fi
 }
 
