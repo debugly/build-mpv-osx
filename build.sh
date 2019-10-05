@@ -10,6 +10,7 @@ export MES=${MCB}/base
 export TARGET=${MCB}/dest
 export CMPL=${MCB}/build
 export PATH=${TARGET}/bin:$PATH
+export MACOSX_DEPLOYMENT_TARGET='10.11'
 
 # extend the python modules path
 # export PYTHONPATH="${TARGET}/lib/python2.7/site-packages/"
@@ -72,6 +73,20 @@ function read_input(){
             rm "${TARGET}/lib/"libass.*
             echo 'libass clean succeed.'
             exit 0
+        elif [[ "$2" == '--lua' ]];then
+            rm -rf "${CMPL}/"lua-*
+            rm "${TARGET}/include/lua.h" "${TARGET}/include/lua.hpp" "${TARGET}/include/luaconf.h" "${TARGET}/include/lualib.h" "${TARGET}/include/lauxlib.h"
+            rm "${TARGET}/lib/"liblua.*
+            rm "${TARGET}/bin/lua" "${TARGET}/bin/luac"
+            echo 'lua clean succeed.'
+            exit 0
+        elif [[ "$2" == '--luajit' ]];then
+            rm -rf "${CMPL}/"LuaJIT-*
+            rm -rf "${TARGET}/include/"luajit-*
+            rm "${TARGET}/lib/"libluajit-*
+            rm "${TARGET}/bin/"luajit*
+            echo 'luajit clean succeed.'
+            exit 0
         elif [[ "$2" == '--ffmpeg' ]];then
             cd "${CMPL}/ffmpeg"
             git reset --hard HEAD && git clean -dfx
@@ -118,6 +133,8 @@ function read_input(){
             echo "\t--libfreetype  just clean libfreetype."
             echo "\t--libfribidi   just clean fribidi bin and lib."
             echo "\t--libass       just clean libass."
+            echo "\t--lua          just clean lua."
+            echo "\t--luajit       just clean luaJIT."
             echo "\t--libressl     just clean libressl."
             
             exit 0
@@ -149,25 +166,6 @@ function read_input(){
 }
 
 function build_denpendents(){
-    echo "\n--------------------"
-    echo "[*] check ysam"
-    # next, yasm
-    if [[ -f "${TARGET}/lib/libyasm.a" && -f "${TARGET}/bin/yasm" ]];then
-        echo "✅ysam already exist!"
-    else
-        # should work with yasm-1.3.0.tar.gz
-        echo "begin build ysam ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/yasm*.tar.gz
-        cd yasm-*
-        make clean
-        ./configure --prefix=${TARGET} && make -j 8 && make install
-        if [[ $? != 0 ]];then
-            exit 1
-        fi
-    fi
-    echo "----------------------"
-
 
     echo "\n--------------------"
     echo "[*] check pkg-config"
@@ -187,6 +185,26 @@ function build_denpendents(){
             exit 1
         fi
         unset LDFLAGS
+    fi
+    echo "----------------------"
+
+
+    echo "\n--------------------"
+    echo "[*] check ysam"
+    # next, yasm
+    if [[ -f "${TARGET}/lib/libyasm.a" && -f "${TARGET}/bin/yasm" ]];then
+        echo "✅ysam already exist!"
+    else
+        # should work with yasm-1.3.0.tar.gz
+        echo "begin build ysam ...\n"
+        cd ${CMPL}
+        tar xzpf ${MES}/yasm*.tar.gz
+        cd yasm-*
+        make clean
+        ./configure --prefix=${TARGET} && make -j 8 && make install
+        if [[ $? != 0 ]];then
+            exit 1
+        fi
     fi
     echo "----------------------"
 
@@ -285,6 +303,49 @@ function build_denpendents(){
     fi
     echo "----------------------"
 
+    echo "\n--------------------"
+    echo "[*] check lua"
+    # next, lua
+    if [[ -f "${TARGET}/lib/liblua.a" ]];then
+        echo "✅lua already exist!"
+    else
+        # should work with lua-5.3.5.tar.gz
+        echo "begin build lua ...\n"
+        cd ${CMPL}
+        tar xzpf ${MES}/lua-*tar.gz
+        cd lua-*
+        make macosx  INSTALL_TOP="${TARGET}" INSTALL_INC="${TARGET}/include/lua" INSTALL_MAN="${TARGET}/man/man1"
+        make install INSTALL_TOP="${TARGET}" INSTALL_INC="${TARGET}/include/lua" INSTALL_MAN="${TARGET}/man/man1"
+        if [[ $? != 0 ]];then
+            exit 1
+        fi
+
+        dest="${TARGET}/lib/pkgconfig/lua.pc"
+        cp "${MES}/lua.pc" "${dest}"
+
+    fi
+    echo "----------------------"
+
+    echo "\n--------------------"
+    echo "[*] check luaJIT"
+    # next, lua
+    r=$(ls "${TARGET}/lib/"libluajit*.a)
+    if [[ $? == 0 ]];then
+        echo "✅luaJIT already exist!"
+    else
+        # should work with LuaJIT-2.0.5.tar.gz
+        echo "begin build luaJIT ...\n"
+        cd ${CMPL}
+        tar xzpf ${MES}/LuaJIT-*tar.gz
+        cd LuaJIT-*
+        make clean
+        make amalg PREFIX=${TARGET}
+        make install PREFIX=${TARGET}
+        if [[ $? != 0 ]];then
+            exit 1
+        fi
+    fi
+    echo "----------------------"
 
     echo "\n--------------------"
     echo "[*] check ffmpeg"
@@ -326,6 +387,10 @@ function build_denpendents(){
     fi
     echo "----------------------"
 
+    # get rid of the dynamically loadable libraries
+    # to force it to use the static version for compilation
+    rm ${TARGET}/lib/*.dylib
+
     echo 
     echo "Okey, all dependent bins/libs is ready!"
     echo
@@ -334,7 +399,7 @@ function build_denpendents(){
 # build mpv
 
 function build_mpv(){
-
+    echo "begin build mpv"
     cd ${CMPL}
 
     if [[ -d "mpv" ]];then

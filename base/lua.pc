@@ -1,0 +1,24 @@
+# Package information for Lua to be used by pkg-config.
+majver=5
+minver=3
+relver=5
+version=${majver}.${minver}.${relver}
+abiver=${majver}.${minver}
+
+prefix=/Users/qianlongxu/Documents/GitWorkspace/build-mpv-osx/dest
+multilib=lib
+exec_prefix=${prefix}
+libdir=${exec_prefix}/${multilib}
+libname=lua
+includedir=${prefix}/include/lua
+
+INSTALL_LMOD=${prefix}/share/lua/${abiver}
+INSTALL_CMOD=${prefix}/${multilib}/lua/${abiver}
+
+Name: Lua
+Description: An Extensible Extension Language
+URL: http://lua.org
+Version: ${version}
+Requires:
+Libs: -L${libdir} -l${libname}
+Cflags: -I${includedir}

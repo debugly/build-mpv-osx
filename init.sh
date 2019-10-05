@@ -11,6 +11,8 @@ mpvTag='0.29.1'
 assTag='0.14.0'
 fribidiTag='1.0.7'
 freetypeTag='2.10.1'
+luaTag='5.3.5'
+luaJITTag='2.0.5'
 
 MPVSourceGit="https://gitee.com/mattreach/mpv_fork.git" # "https://github.com/mpv-player/mpv.git"
 FFSourceGit="https://gitee.com/mattreach/FFmpeg.git"
@@ -85,6 +87,30 @@ if [ ! -f $libass ];then
     fi
 else
     echo "✅ ${libass}"
+fi
+
+lua="lua-${luaTag}.tar.gz"
+if [ ! -f $lua ];then
+    echo "======== download lua v${luaTag} ========"
+    curl -LO "https://www.lua.org/ftp/${lua}"
+    if [[ $? != 0 ]];then
+        rm "${lua}"
+        exit 1
+    fi
+else
+    echo "✅ ${lua}"
+fi
+
+luaJIT="LuaJIT-${luaJITTag}.tar.gz"
+if [ ! -f $luaJIT ];then
+    echo "======== download luaJIT v${luaJITTag} ========"
+    curl -LO "https://luajit.org/download/${luaJIT}"
+    if [[ $? != 0 ]];then
+        rm "${luaJIT}"
+        exit 1
+    fi
+else
+    echo "✅ ${luaJIT}"
 fi
 
 # ffmpeg=ffmpeg-${ffmpegTag}.tar.gz
