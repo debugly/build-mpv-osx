@@ -60,7 +60,7 @@ function read_input(){
             echo 'libfreetype clean succeed.'
             exit 0
         elif [[ "$2" == '--libfribidi' ]];then
-            rm -rf "${CMPL}/"freetype*
+            rm -rf "${CMPL}/"fribidi*
             rm -rf "${TARGET}/include/"fribidi*
             rm "${TARGET}/lib/"libfribidi.*
             rm "${TARGET}/bin/"fribidi*
