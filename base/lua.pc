@@ -1,6 +1,6 @@
 # Package information for Lua to be used by pkg-config.
 majver=5
-minver=3
+minver=1
 relver=5
 version=${majver}.${minver}.${relver}
 abiver=${majver}.${minver}

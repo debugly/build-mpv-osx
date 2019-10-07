@@ -1,4 +1,5 @@
-# brew install luajit mujs libass
+#brew install docutils libpng libffi pcre glib fontconfig pixman cairo gobject-introspection icu4c harfbuzz lame x264 xvid libtiff little-cms2 libxml2
+
 
 # use the llvm compiler
 export CC="/usr/bin/clang"
@@ -12,6 +13,7 @@ export CMPL=${MCB}/build
 export PATH=${TARGET}/bin:$PATH
 export MACOSX_DEPLOYMENT_TARGET='10.11'
 
+export PKG_CONFIG_PATH='/Users/qianlongxu/Documents/GitWorkspace/build-mpv-osx/dest/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:/usr/local/lib/pkgconfig'
 # extend the python modules path
 # export PYTHONPATH="${TARGET}/lib/python2.7/site-packages/"
 
@@ -138,6 +140,10 @@ function read_input(){
             echo "\t--libressl     just clean libressl."
             
             exit 0
+        else
+            echo 'unknown cmd:'$2
+            read_input 'clean' '--help'
+            exit 0
         fi
     elif [[ "$1" == '--help' ]];then
         echo 'Usage:'
@@ -156,6 +162,10 @@ function read_input(){
             exit 0
         elif [[ "$2" == '--dep' ]];then
             build_denpendents
+        elif [[ "$2" ]];then
+            echo 'unknown cmd:'$2
+            read_input 'build' '--help'
+            exit 0
         else
             build_denpendents
             build_mpv
@@ -428,6 +438,7 @@ function build_mpv(){
     CONF_FLAGS="$CONF_FLAGS --disable-manpage-build"
     CONF_FLAGS="$CONF_FLAGS --disable-tvos"
     # CONF_FLAGS="$CONF_FLAGS --disable-cplayer"
+    # CONF_FLAGS="$CONF_FLAGS -vvv"
 
     if [[ ! -f "${TARGET}/lib/libass.a" ]];then
         CONF_FLAGS="$CONF_FLAGS --disable-libass"

@@ -11,7 +11,7 @@ mpvTag='0.29.1'
 assTag='0.14.0'
 fribidiTag='1.0.7'
 freetypeTag='2.10.1'
-luaTag='5.3.5'
+luaTag='5.1.5'
 luaJITTag='2.0.5'
 
 MPVSourceGit="https://gitee.com/mattreach/mpv_fork.git" # "https://github.com/mpv-player/mpv.git"
