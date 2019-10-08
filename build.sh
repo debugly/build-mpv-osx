@@ -299,7 +299,6 @@ function build_denpendents(){
     if [[ -f "${TARGET}/lib/libass.a" ]];then
         echo "✅libass already exist!"
     else
-        export PKG_CONFIG_PATH=pkg-config
         # should work with libass-0.14.0.tar.gz
         echo "begin build libass ...\n"
         cd ${CMPL}
