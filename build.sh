@@ -11,7 +11,7 @@ export MES=${MCB}/base
 export TARGET=${MCB}/dest
 export CMPL=${MCB}/build
 export PATH=${TARGET}/bin:$PATH
-export MACOSX_DEPLOYMENT_TARGET='10.11'
+export MACOSX_DEPLOYMENT_TARGET='10.10'
 
 export PKG_CONFIG_PATH='/Users/qianlongxu/Documents/GitWorkspace/build-mpv-osx/dest/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:/usr/local/lib/pkgconfig'
 # extend the python modules path
@@ -180,7 +180,9 @@ function build_denpendents(){
     echo "\n--------------------"
     echo "[*] check pkg-config"
     # next, pkg-config
-    if [[ -f "${TARGET}/bin/pkg-config" ]];then
+    which pkg-config
+
+    if [[ $? -eq 0 || -f "${TARGET}/bin/pkg-config" ]];then
         echo "✅pkg-config already exist!"
     else
         # should work with pkg-config-0.29.1.tar.gz
@@ -378,6 +380,8 @@ function build_denpendents(){
 
         make clean
         ./configure --prefix=${TARGET} \
+            --target-os=darwin \
+            --arch=x86_64 \
             --extra-cflags="-I${TARGET}/include" \
             --extra-ldflags="-L${TARGET}/lib" \
             --enable-openssl \
