@@ -436,7 +436,13 @@ function build_mpv(){
     CONF_FLAGS="$CONF_FLAGS --enable-libmpv-static"
     CONF_FLAGS="$CONF_FLAGS --disable-manpage-build"
     CONF_FLAGS="$CONF_FLAGS --disable-tvos"
-    # CONF_FLAGS="$CONF_FLAGS --disable-cplayer"
+    CONF_FLAGS="$CONF_FLAGS --disable-swift"
+    CONF_FLAGS="$CONF_FLAGS --disable-lua"
+    CONF_FLAGS="$CONF_FLAGS --disable-javascript"
+    CONF_FLAGS="$CONF_FLAGS --disable-libass"
+    CONF_FLAGS="$CONF_FLAGS --disable-libass-osd"
+    CONF_FLAGS="$CONF_FLAGS --disable-libbluray"
+    CONF_FLAGS="$CONF_FLAGS --disable-cplayer"
     # CONF_FLAGS="$CONF_FLAGS -vvv"
 
     if [[ ! -f "${TARGET}/lib/libass.a" ]];then
