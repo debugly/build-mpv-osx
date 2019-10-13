@@ -175,6 +175,12 @@ function read_input(){
     fi
 }
 
+function clean_dylib(){
+    # get rid of the dynamically loadable libraries
+    # to force it to use the static version for compilation
+    rm ${TARGET}/lib/*.dylib
+}
+
 function build_denpendents(){
 
     echo "\n--------------------"
@@ -236,6 +242,8 @@ function build_denpendents(){
         ./configure --prefix=${TARGET} --enable-static && make -j 8 && make -s install
         if [[ $? != 0 ]];then
             exit 1
+        else
+            clean_dylib
         fi
     fi
     echo "----------------------"
@@ -263,6 +271,8 @@ function build_denpendents(){
             && make -j 8 && make -s install
         if [[ $? != 0 ]];then
             exit 1
+        else
+            clean_dylib
         fi
     fi
     echo "----------------------"
@@ -290,6 +300,8 @@ function build_denpendents(){
             && make -j 8 && make -s install
         if [[ $? != 0 ]];then
             exit 1
+        else
+            clean_dylib
         fi
     fi
     echo "----------------------"
@@ -310,6 +322,8 @@ function build_denpendents(){
         ./configure --prefix=${TARGET} --disable-fontconfig --disable-shared --enable-static && make -j 8 && make -s install
         if [[ $? != 0 ]];then
             exit 1
+        else
+            clean_dylib
         fi
     fi
     echo "----------------------"
@@ -329,6 +343,8 @@ function build_denpendents(){
         make install INSTALL_TOP="${TARGET}" INSTALL_INC="${TARGET}/include/lua" INSTALL_MAN="${TARGET}/man/man1"
         if [[ $? != 0 ]];then
             exit 1
+        else
+            clean_dylib
         fi
 
         dest="${TARGET}/lib/pkgconfig/lua.pc"
@@ -354,6 +370,8 @@ function build_denpendents(){
         make install PREFIX=${TARGET}
         if [[ $? != 0 ]];then
             exit 1
+        else
+            clean_dylib
         fi
     fi
     echo "----------------------"
@@ -399,10 +417,6 @@ function build_denpendents(){
         fi
     fi
     echo "----------------------"
-
-    # get rid of the dynamically loadable libraries
-    # to force it to use the static version for compilation
-    rm ${TARGET}/lib/*.dylib
 
     echo 
     echo "Okey, all dependent bins/libs is ready!"
