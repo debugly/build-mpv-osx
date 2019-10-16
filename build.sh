@@ -6,20 +6,21 @@ export CC="/usr/bin/clang"
 export CXX="/usr/bin/clang++"
 
 # set up shortcuts
-export MCB=${PWD}
-export MES=${MCB}/base
-export TARGET=${MCB}/dest
-export CMPL=${MCB}/build
-export PATH=${TARGET}/bin:$PATH
+export WORKSPACE=${PWD}
+export SOURCE_DIR=${WORKSPACE}/base
+export TARGET_DIR=${WORKSPACE}/dest
+export BUILD_DIR=${WORKSPACE}/build
+
+export PATH=${TARGET_DIR}/bin:$PATH
 export MACOSX_DEPLOYMENT_TARGET='10.10'
 
 export PKG_CONFIG_PATH='/Users/qianlongxu/Documents/GitWorkspace/build-mpv-osx/dest/lib/pkgconfig:/usr/local/opt/libxml2/lib/pkgconfig:/usr/local/lib/pkgconfig'
 # extend the python modules path
-# export PYTHONPATH="${TARGET}/lib/python2.7/site-packages/"
+# export PYTHONPATH="${TARGET_DIR}/lib/python2.7/site-packages/"
 
 # set up the directories
-mkdir -p ${TARGET}
-mkdir -p ${CMPL}
+mkdir -p ${TARGET_DIR}
+mkdir -p ${BUILD_DIR}
 
 cmdpath="$0"
 
@@ -27,107 +28,107 @@ function read_input(){
     if [[ "$1" == 'clean' ]];then
 
         if [[ "$2" == '--all' ]];then
-            rm -rf "${CMPL}"/*
-            rm -rf "${TARGET}"/*
+            rm -rf "${BUILD_DIR}"/*
+            rm -rf "${TARGET_DIR}"/*
             echo "all lib clean succeed."
             exit 0
         elif [[ "$2" == '--yasm' ]];then
-            rm -rf "${CMPL}/"ysam*
-            rm "${TARGET}/bin/yasm" \
-            "${TARGET}/bin/vsyasm" \
-            "${TARGET}/bin/ytasm"
-            rm "${TARGET}/lib/libyasm.a"
-            rm -rf "${TARGET}/include/libyasm"
-            rm "${TARGET}/include/libyasm.h" \
-            "${TARGET}/include/libyasm-stdint.h"
+            rm -rf "${BUILD_DIR}/"ysam*
+            rm "${TARGET_DIR}/bin/yasm" \
+            "${TARGET_DIR}/bin/vsyasm" \
+            "${TARGET_DIR}/bin/ytasm"
+            rm "${TARGET_DIR}/lib/libyasm.a"
+            rm -rf "${TARGET_DIR}/include/libyasm"
+            rm "${TARGET_DIR}/include/libyasm.h" \
+            "${TARGET_DIR}/include/libyasm-stdint.h"
             echo 'yasm clean succeed.'
             exit 0
         elif [[ "$2" == '--pkg-config' ]];then
-            rm -rf "${CMPL}/"pkg-config*
-            rm "${TARGET}/bin/"*pkg-config
+            rm -rf "${BUILD_DIR}/"pkg-config*
+            rm "${TARGET_DIR}/bin/"*pkg-config
             echo 'pkg-config clean succeed.'
             exit 0
         elif [[ "$2" == '--libressl' ]];then
-            rm -rf "${CMPL}/"libressl*
-            rm "${TARGET}/bin/openssl" "${TARGET}/bin/ocspcheck"
-            rm -rf "${TARGET}/etc"
-            rm -rf "${TARGET}/include/openssl"
-            rm "${TARGET}/include/tls.h"
-            rm "${TARGET}/lib/"libcrypto.* "${TARGET}/lib/"libssl* "${TARGET}/lib/"libtls.*
+            rm -rf "${BUILD_DIR}/"libressl*
+            rm "${TARGET_DIR}/bin/openssl" "${TARGET_DIR}/bin/ocspcheck"
+            rm -rf "${TARGET_DIR}/etc"
+            rm -rf "${TARGET_DIR}/include/openssl"
+            rm "${TARGET_DIR}/include/tls.h"
+            rm "${TARGET_DIR}/lib/"libcrypto.* "${TARGET_DIR}/lib/"libssl* "${TARGET_DIR}/lib/"libtls.*
             echo 'libressl clean succeed.'
             exit 0
         elif [[ "$2" == '--libfreetype' ]];then
-            rm -rf "${CMPL}/"freetype*
-            rm -rf "${TARGET}/include/"freetype*
-            rm "${TARGET}/lib/"libfreetype.*
+            rm -rf "${BUILD_DIR}/"freetype*
+            rm -rf "${TARGET_DIR}/include/"freetype*
+            rm "${TARGET_DIR}/lib/"libfreetype.*
             echo 'libfreetype clean succeed.'
             exit 0
         elif [[ "$2" == '--libfribidi' ]];then
-            rm -rf "${CMPL}/"fribidi*
-            rm -rf "${TARGET}/include/"fribidi*
-            rm "${TARGET}/lib/"libfribidi.*
-            rm "${TARGET}/bin/"fribidi*
+            rm -rf "${BUILD_DIR}/"fribidi*
+            rm -rf "${TARGET_DIR}/include/"fribidi*
+            rm "${TARGET_DIR}/lib/"libfribidi.*
+            rm "${TARGET_DIR}/bin/"fribidi*
             echo 'libfribidi clean succeed.'
             exit 0
         elif [[ "$2" == '--libass' ]];then
-            rm -rf "${CMPL}/"libass*
-            rm -rf "${TARGET}/include/"ass*
-            rm "${TARGET}/lib/"libass.*
+            rm -rf "${BUILD_DIR}/"libass*
+            rm -rf "${TARGET_DIR}/include/"ass*
+            rm "${TARGET_DIR}/lib/"libass.*
             echo 'libass clean succeed.'
             exit 0
         elif [[ "$2" == '--lua' ]];then
-            rm -rf "${CMPL}/"lua-*
-            rm "${TARGET}/include/lua.h" "${TARGET}/include/lua.hpp" "${TARGET}/include/luaconf.h" "${TARGET}/include/lualib.h" "${TARGET}/include/lauxlib.h"
-            rm "${TARGET}/lib/"liblua.*
-            rm "${TARGET}/bin/lua" "${TARGET}/bin/luac"
+            rm -rf "${BUILD_DIR}/"lua-*
+            rm "${TARGET_DIR}/include/lua.h" "${TARGET_DIR}/include/lua.hpp" "${TARGET_DIR}/include/luaconf.h" "${TARGET_DIR}/include/lualib.h" "${TARGET_DIR}/include/lauxlib.h"
+            rm "${TARGET_DIR}/lib/"liblua.*
+            rm "${TARGET_DIR}/bin/lua" "${TARGET_DIR}/bin/luac"
             echo 'lua clean succeed.'
             exit 0
         elif [[ "$2" == '--luajit' ]];then
-            rm -rf "${CMPL}/"LuaJIT-*
-            rm -rf "${TARGET}/include/"luajit-*
-            rm "${TARGET}/lib/"libluajit-*
-            rm "${TARGET}/bin/"luajit*
+            rm -rf "${BUILD_DIR}/"LuaJIT-*
+            rm -rf "${TARGET_DIR}/include/"luajit-*
+            rm "${TARGET_DIR}/lib/"libluajit-*
+            rm "${TARGET_DIR}/bin/"luajit*
             echo 'luajit clean succeed.'
             exit 0
         elif [[ "$2" == '--ffmpeg' ]];then
-            if [[ -d "${CMPL}/ffmpeg" ]];then
-                cd "${CMPL}/ffmpeg"
+            if [[ -d "${BUILD_DIR}/ffmpeg" ]];then
+                cd "${BUILD_DIR}/ffmpeg"
                 git reset --hard HEAD && git clean -dfx
                 cd -
             fi
 
-            rm "${TARGET}/bin/ffmpeg" "${TARGET}/bin/ffprobe"
-            rm -rf "${TARGET}/include/libavcodec" \
-                "${TARGET}/include/libavformat" \
-                "${TARGET}/include/libavutil" \
-                "${TARGET}/include/libavdevice" \
-                "${TARGET}/include/libswresample" \
-                "${TARGET}/include/libswscale" \
-                "${TARGET}/include/libavfilter" \
+            rm "${TARGET_DIR}/bin/ffmpeg" "${TARGET_DIR}/bin/ffprobe"
+            rm -rf "${TARGET_DIR}/include/libavcodec" \
+                "${TARGET_DIR}/include/libavformat" \
+                "${TARGET_DIR}/include/libavutil" \
+                "${TARGET_DIR}/include/libavdevice" \
+                "${TARGET_DIR}/include/libswresample" \
+                "${TARGET_DIR}/include/libswscale" \
+                "${TARGET_DIR}/include/libavfilter" \
 
-            rm "${TARGET}/include/tls.h"
-            rm "${TARGET}/lib/"libavcodec.* \
-            "${TARGET}/lib/"libavformat.* \
-            "${TARGET}/lib/"libavutil.* \
-            "${TARGET}/lib/"libavdevice.* \
-            "${TARGET}/lib/"libswresample.* \
-            "${TARGET}/lib/"libswscale.* \
-            "${TARGET}/lib/"libavfilter.*
+            rm "${TARGET_DIR}/include/tls.h"
+            rm "${TARGET_DIR}/lib/"libavcodec.* \
+            "${TARGET_DIR}/lib/"libavformat.* \
+            "${TARGET_DIR}/lib/"libavutil.* \
+            "${TARGET_DIR}/lib/"libavdevice.* \
+            "${TARGET_DIR}/lib/"libswresample.* \
+            "${TARGET_DIR}/lib/"libswscale.* \
+            "${TARGET_DIR}/lib/"libavfilter.*
 
             echo 'ffmpeg clean succeed.'
             exit 0
         elif [[ "$2" == '--mpv' ]];then
-            if [[ -d "${CMPL}/mpv" ]];then
-                cd "${CMPL}/mpv"
+            if [[ -d "${BUILD_DIR}/mpv" ]];then
+                cd "${BUILD_DIR}/mpv"
                 git reset --hard HEAD && git clean -dfx
                 cd -
             fi
 
-            rm -rf "${TARGET}/app"
-            rm "${TARGET}/lib/"libmpv.*
-            rm -rf "${TARGET}/bin/"mpv*
-            rm -rf "${TARGET}/etc/"mpv*
-            rm -rf "${TARGET}/include/"mpv*
+            rm -rf "${TARGET_DIR}/app"
+            rm "${TARGET_DIR}/lib/"libmpv.*
+            rm -rf "${TARGET_DIR}/bin/"mpv*
+            rm -rf "${TARGET_DIR}/etc/"mpv*
+            rm -rf "${TARGET_DIR}/include/"mpv*
                 
             echo 'mpv clean succeed.'
             exit 0
@@ -158,7 +159,7 @@ function read_input(){
         echo '\t$ sh '$cmdpath 'COMMAND'
         echo 'Commands:'
         echo "\t+ clean  clean build workspace."
-        echo "\t+ build build your target."
+        echo "\t+ build build your TARGET_DIR."
         exit 0
     elif [[ "$1" == 'build' ]];then
 
@@ -186,7 +187,7 @@ function read_input(){
 function clean_dylib(){
     # get rid of the dynamically loadable libraries
     # to force it to use the static version for compilation
-    rm ${TARGET}/lib/*.dylib
+    rm ${TARGET_DIR}/lib/*.dylib
 }
 
 function build_denpendents_extensiton(){
@@ -201,11 +202,11 @@ function build_denpendents_extensiton(){
         # should work with fribidi-1.0.7.tar.bz2
         # https://github.com/Homebrew/homebrew-core/blob/master/Formula/fribidi.rb
         echo "begin build fribidi ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/fribidi-*tar.bz2
+        cd ${BUILD_DIR}
+        tar xzpf ${SOURCE_DIR}/fribidi-*tar.bz2
         cd fribidi*
         make clean
-        ./configure --prefix=${TARGET} \
+        ./configure --prefix=${TARGET_DIR} \
             --disable-debug \
             --disable-dependency-tracking \
             --disable-silent-rules \
@@ -231,11 +232,11 @@ function build_denpendents_extensiton(){
         # should work with freetype-2.10.1.tar.xz
         # https://github.com/Homebrew/homebrew-core/blob/master/Formula/freetype.rb
         echo "begin build freetype ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/freetype-*tar.xz
+        cd ${BUILD_DIR}
+        tar xzpf ${SOURCE_DIR}/freetype-*tar.xz
         cd freetype*
         make clean
-        ./configure --prefix=${TARGET} \
+        ./configure --prefix=${TARGET_DIR} \
             --disable-debug \
             --disable-dependency-tracking \
             --disable-silent-rules \
@@ -260,11 +261,11 @@ function build_denpendents_extensiton(){
     else
         # should work with libass-0.14.0.tar.gz
         echo "begin build libass ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/libass-*tar.gz
+        cd ${BUILD_DIR}
+        tar xzpf ${SOURCE_DIR}/libass-*tar.gz
         cd libass*
         make clean
-        ./configure --prefix=${TARGET} --disable-fontconfig --disable-shared --enable-static && make -j 8 && make -s install
+        ./configure --prefix=${TARGET_DIR} --disable-fontconfig --disable-shared --enable-static && make -j 8 && make -s install
         if [[ $? != 0 ]];then
             exit 1
         else
@@ -282,19 +283,19 @@ function build_denpendents_extensiton(){
     else
         # should work with lua-5.3.5.tar.gz
         echo "begin build lua ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/lua-*tar.gz
+        cd ${BUILD_DIR}
+        tar xzpf ${SOURCE_DIR}/lua-*tar.gz
         cd lua-*
-        make macosx  INSTALL_TOP="${TARGET}" INSTALL_INC="${TARGET}/include/lua" INSTALL_MAN="${TARGET}/man/man1"
-        make install INSTALL_TOP="${TARGET}" INSTALL_INC="${TARGET}/include/lua" INSTALL_MAN="${TARGET}/man/man1"
+        make macosx  INSTALL_TOP="${TARGET_DIR}" INSTALL_INC="${TARGET_DIR}/include/lua" INSTALL_MAN="${TARGET_DIR}/man/man1"
+        make install INSTALL_TOP="${TARGET_DIR}" INSTALL_INC="${TARGET_DIR}/include/lua" INSTALL_MAN="${TARGET_DIR}/man/man1"
         if [[ $? != 0 ]];then
             exit 1
         else
             clean_dylib
         fi
 
-        dest="${TARGET}/lib/pkgconfig/lua.pc"
-        cp "${MES}/lua.pc" "${dest}"
+        dest="${TARGET_DIR}/lib/pkgconfig/lua.pc"
+        cp "${SOURCE_DIR}/lua.pc" "${dest}"
 
     fi
     echo "----------------------"
@@ -308,12 +309,12 @@ function build_denpendents_extensiton(){
     else
         # should work with LuaJIT-2.0.5.tar.gz
         echo "begin build luaJIT ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/LuaJIT-*tar.gz
+        cd ${BUILD_DIR}
+        tar xzpf ${SOURCE_DIR}/LuaJIT-*tar.gz
         cd LuaJIT-*
         make clean
-        make amalg PREFIX=${TARGET}
-        make install PREFIX=${TARGET}
+        make amalg PREFIX=${TARGET_DIR}
+        make install PREFIX=${TARGET_DIR}
         if [[ $? != 0 ]];then
             exit 1
         else
@@ -335,12 +336,12 @@ function build_denpendents(){
     else
         # should work with pkg-config-0.29.1.tar.gz
         echo "begin build pkg-config ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/pkg-config-*.tar.gz
+        cd ${BUILD_DIR}
+        tar xzpf ${SOURCE_DIR}/pkg-config-*.tar.gz
         cd pkg-config-*
         make clean
         export LDFLAGS="-framework Foundation -framework Cocoa"
-        ./configure --prefix=${TARGET} --with-pc-path=${TARGET}/lib/pkgconfig --with-internal-glib && make -j 8 && make install
+        ./configure --prefix=${TARGET_DIR} --with-pc-path=${TARGET_DIR}/lib/pkgconfig --with-internal-glib && make -j 8 && make install
         if [[ $? != 0 ]];then
             exit 1
         fi
@@ -358,11 +359,11 @@ function build_denpendents(){
     else
         # should work with yasm-1.3.0.tar.gz
         echo "begin build ysam ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/yasm*.tar.gz
+        cd ${BUILD_DIR}
+        tar xzpf ${SOURCE_DIR}/yasm*.tar.gz
         cd yasm-*
         make clean
-        ./configure --prefix=${TARGET} && make -j 8 && make install
+        ./configure --prefix=${TARGET_DIR} && make -j 8 && make install
         if [[ $? != 0 ]];then
             exit 1
         fi
@@ -374,16 +375,16 @@ function build_denpendents(){
     echo "[*] check libressl"
     # next, libressl
     # pkg-config --libs openssl
-    if [[ -f "${TARGET}/lib/libtls.a" && -f "${TARGET}/lib/libssl.a"  && -f "${TARGET}/lib/libcrypto.a" ]];then
+    if [[ -f "${TARGET_DIR}/lib/libtls.a" && -f "${TARGET_DIR}/lib/libssl.a"  && -f "${TARGET_DIR}/lib/libcrypto.a" ]];then
         echo "✅libressl already exist!"
     else
         # should work with libressl-2.4.2.tar.gz
         echo "begin build libressl ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/libressl-*tar.gz
+        cd ${BUILD_DIR}
+        tar xzpf ${SOURCE_DIR}/libressl-*tar.gz
         cd libressl*
         make clean
-        ./configure --prefix=${TARGET} --enable-static && make -j 8 && make -s install
+        ./configure --prefix=${TARGET_DIR} --enable-static && make -j 8 && make -s install
         if [[ $? != 0 ]];then
             exit 1
         else
@@ -425,27 +426,27 @@ function build_denpendents(){
     # e_libswscale=$?
 
     # if [[ $e_libavcodec == 0 && $e_libavformat == 0 && $e_libavutil == 0 && $e_libavdevice == 0 && $e_libavfilter == 0 && $e_libswresample == 0 && $e_libswscale == 0 ]];then
-    if [[ -f "${TARGET}/lib/libavcodec.a" && -f "${TARGET}/lib/libavformat.a" && -f "${TARGET}/lib/libavutil.a" && -f "${TARGET}/lib/libavdevice.a" && -f "${TARGET}/lib/libavfilter.a" && -f "${TARGET}/lib/libswresample.a" && -f "${TARGET}/lib/libswscale.a" ]];then
+    if [[ -f "${TARGET_DIR}/lib/libavcodec.a" && -f "${TARGET_DIR}/lib/libavformat.a" && -f "${TARGET_DIR}/lib/libavutil.a" && -f "${TARGET_DIR}/lib/libavdevice.a" && -f "${TARGET_DIR}/lib/libavfilter.a" && -f "${TARGET_DIR}/lib/libswresample.a" && -f "${TARGET_DIR}/lib/libswscale.a" ]];then
         echo "✅ffmpeg already exist!"
     else
         # should work with ffmpeg-4.1.tar.gz
         echo "begin build ffmpeg ...\n"
-        cd ${CMPL}
+        cd ${BUILD_DIR}
         if [[ ! -d "ffmpeg" ]];then
-            git clone --reference "${MES}/ffmpeg" "https://gitee.com/mattreach/FFmpeg.git" "ffmpeg"
+            git clone --reference "${SOURCE_DIR}/ffmpeg" "https://gitee.com/mattreach/FFmpeg.git" "ffmpeg"
             cd "ffmpeg"
             git checkout "$FF_TAG" -B mr
-            cp -r "${MES}/patch/ffmpeg" "${CMPL}"
+            cp -r "${SOURCE_DIR}/patch/ffmpeg" "${BUILD_DIR}"
             cd -
         fi
 
         cd "ffmpeg"
         make clean  
-        ./configure --prefix=${TARGET} \
-            --target-os=darwin \
+        ./configure --prefix=${TARGET_DIR} \
+            --TARGET_DIR-os=darwin \
             --arch=x86_64 \
-            --extra-cflags="-I${TARGET}/include" \
-            --extra-ldflags="-L${TARGET}/lib" \
+            --extra-cflags="-I${TARGET_DIR}/include" \
+            --extra-ldflags="-L${TARGET_DIR}/lib" \
             --enable-openssl \
             --enable-static --disable-shared \
             --disable-doc \
@@ -467,13 +468,13 @@ function build_denpendents(){
 
 function build_mpv(){
     echo "begin build mpv"
-    cd ${CMPL}
+    cd ${BUILD_DIR}
 
     if [[ -d "mpv" ]];then
         cd "mpv"
         git fetch --all --tags
     else
-        git clone --reference "${MES}/mpv" "https://gitee.com/mattreach/mpv_fork.git" "mpv"
+        git clone --reference "${SOURCE_DIR}/mpv" "https://gitee.com/mattreach/mpv_fork.git" "mpv"
         cd "mpv"
     fi
 
@@ -501,7 +502,7 @@ function build_mpv(){
     CONF_FLAGS="$CONF_FLAGS --disable-cplayer"
     # CONF_FLAGS="$CONF_FLAGS -vvv"
 
-    if [[ ! -f "${TARGET}/lib/libass.a" ]];then
+    if [[ ! -f "${TARGET_DIR}/lib/libass.a" ]];then
         CONF_FLAGS="$CONF_FLAGS --disable-libass"
     fi
 
@@ -509,7 +510,7 @@ function build_mpv(){
 
     ./waf clean
     ./waf configure \
-        --prefix=${TARGET} \
+        --prefix=${TARGET_DIR} \
         $CONF_FLAGS
 
     if [[ $? != 0 ]];then
@@ -523,13 +524,13 @@ function build_mpv(){
     ./waf install
 
     # check if mpv exist ?
-    if [ -e $TARGET/bin/mpv ];then
-        python TOOLS/osxbundle.py $TARGET/bin/mpv
-        app_dir="${TARGET}/app"
+    if [ -e $TARGET_DIR/bin/mpv ];then
+        python TOOLS/osxbundle.py $TARGET_DIR/bin/mpv
+        app_dir="${TARGET_DIR}/app"
         rm -rf "$app_dir"
         mkdir -p "$app_dir"
-        cp -pRP "$TARGET/bin/mpv.app" "${app_dir}/mpv.app"
-        rm -rf "$TARGET/bin/mpv.app"
+        cp -pRP "$TARGET_DIR/bin/mpv.app" "${app_dir}/mpv.app"
+        rm -rf "$TARGET_DIR/bin/mpv.app"
         echo "Your mpv.app is in ${app_dir}"
     fi
 
