@@ -1,6 +1,6 @@
 #brew install docutils libpng libffi pcre glib fontconfig pixman cairo gobject-introspection icu4c harfbuzz lame x264 xvid libtiff little-cms2 libxml2
 
-
+FF_TAG='n4.2.1'
 # use the llvm compiler
 export CC="/usr/bin/clang"
 export CXX="/usr/bin/clang++"
@@ -90,9 +90,12 @@ function read_input(){
             echo 'luajit clean succeed.'
             exit 0
         elif [[ "$2" == '--ffmpeg' ]];then
-            cd "${CMPL}/ffmpeg"
-            git reset --hard HEAD && git clean -dfx
-            cd -
+            if [[ -d "${CMPL}/ffmpeg" ]];then
+                cd "${CMPL}/ffmpeg"
+                git reset --hard HEAD && git clean -dfx
+                cd -
+            fi
+
             rm "${TARGET}/bin/ffmpeg" "${TARGET}/bin/ffprobe"
             rm -rf "${TARGET}/include/libavcodec" \
                 "${TARGET}/include/libavformat" \
@@ -110,17 +113,22 @@ function read_input(){
             "${TARGET}/lib/"libswresample.* \
             "${TARGET}/lib/"libswscale.* \
             "${TARGET}/lib/"libavfilter.*
+
             echo 'ffmpeg clean succeed.'
             exit 0
         elif [[ "$2" == '--mpv' ]];then
-            cd "${CMPL}/mpv"
-            git reset --hard HEAD && git clean -dfx
-            cd -
+            if [[ -d "${CMPL}/mpv" ]];then
+                cd "${CMPL}/mpv"
+                git reset --hard HEAD && git clean -dfx
+                cd -
+            fi
+
             rm -rf "${TARGET}/app"
             rm "${TARGET}/lib/"libmpv.*
             rm -rf "${TARGET}/bin/"mpv*
             rm -rf "${TARGET}/etc/"mpv*
             rm -rf "${TARGET}/include/"mpv*
+                
             echo 'mpv clean succeed.'
             exit 0
         elif [[ ! "$2" || "$2" == '--help' ]];then
@@ -181,78 +189,13 @@ function clean_dylib(){
     rm ${TARGET}/lib/*.dylib
 }
 
-function build_denpendents(){
-
-    echo "\n--------------------"
-    echo "[*] check pkg-config"
-    # next, pkg-config
-    which pkg-config
-
-    if [[ $? -eq 0 || -f "${TARGET}/bin/pkg-config" ]];then
-        echo "✅pkg-config already exist!"
-    else
-        # should work with pkg-config-0.29.1.tar.gz
-        echo "begin build pkg-config ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/pkg-config-*.tar.gz
-        cd pkg-config-*
-        make clean
-        export LDFLAGS="-framework Foundation -framework Cocoa"
-        ./configure --prefix=${TARGET} --with-pc-path=${TARGET}/lib/pkgconfig --with-internal-glib && make -j 8 && make install
-        if [[ $? != 0 ]];then
-            exit 1
-        fi
-        unset LDFLAGS
-    fi
-    echo "----------------------"
-
-
-    echo "\n--------------------"
-    echo "[*] check ysam"
-    # next, yasm
-    if [[ -f "${TARGET}/lib/libyasm.a" && -f "${TARGET}/bin/yasm" ]];then
-        echo "✅ysam already exist!"
-    else
-        # should work with yasm-1.3.0.tar.gz
-        echo "begin build ysam ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/yasm*.tar.gz
-        cd yasm-*
-        make clean
-        ./configure --prefix=${TARGET} && make -j 8 && make install
-        if [[ $? != 0 ]];then
-            exit 1
-        fi
-    fi
-    echo "----------------------"
-
-
-    echo "\n--------------------"
-    echo "[*] check libressl"
-    # next, libressl
-    if [[ -f "${TARGET}/lib/libtls.a" && -f "${TARGET}/lib/libssl.a"  && -f "${TARGET}/lib/libcrypto.a" ]];then
-        echo "✅libressl already exist!"
-    else
-        # should work with libressl-2.4.2.tar.gz
-        echo "begin build libressl ...\n"
-        cd ${CMPL}
-        tar xzpf ${MES}/libressl-*tar.gz
-        cd libressl*
-        make clean
-        ./configure --prefix=${TARGET} --enable-static && make -j 8 && make -s install
-        if [[ $? != 0 ]];then
-            exit 1
-        else
-            clean_dylib
-        fi
-    fi
-    echo "----------------------"
-
+function build_denpendents_extensiton(){
 
     echo "\n--------------------"
     echo "[*] check fribidi"
     # next, fribidi
-    if [[ -f "${TARGET}/lib/libfribidi.a" ]];then
+    pkg-config --libs fribidi
+    if [[ $? == 0 ]];then
         echo "✅fribidi already exist!"
     else
         # should work with fribidi-1.0.7.tar.bz2
@@ -281,7 +224,8 @@ function build_denpendents(){
     echo "\n--------------------"
     echo "[*] check freetype"
     # next, freetype
-    if [[ -f "${TARGET}/lib/libfreetype.a" ]];then
+    pkg-config --libs freetype2
+    if [[ $? == 0 ]];then
         echo "✅freetype already exist!"
     else
         # should work with freetype-2.10.1.tar.xz
@@ -310,7 +254,8 @@ function build_denpendents(){
     echo "\n--------------------"
     echo "[*] check libass"
     # next, libass
-    if [[ -f "${TARGET}/lib/libass.a" ]];then
+    pkg-config --libs libass
+    if [[ $? == 0 ]];then
         echo "✅libass already exist!"
     else
         # should work with libass-0.14.0.tar.gz
@@ -331,7 +276,8 @@ function build_denpendents(){
     echo "\n--------------------"
     echo "[*] check lua"
     # next, lua
-    if [[ -f "${TARGET}/lib/liblua.a" ]];then
+    pkg-config --libs lua
+    if [[ $? == 0 ]];then
         echo "✅lua already exist!"
     else
         # should work with lua-5.3.5.tar.gz
@@ -356,7 +302,7 @@ function build_denpendents(){
     echo "\n--------------------"
     echo "[*] check luaJIT"
     # next, lua
-    r=$(ls "${TARGET}/lib/"libluajit*.a)
+    pkg-config --libs luajit
     if [[ $? == 0 ]];then
         echo "✅luaJIT already exist!"
     else
@@ -375,6 +321,80 @@ function build_denpendents(){
         fi
     fi
     echo "----------------------"
+}
+
+function build_denpendents(){
+
+    echo "\n--------------------"
+    echo "[*] check pkg-config"
+    # next, pkg-config
+    which pkg-config
+
+    if [[ $? == 0 ]];then
+        echo "✅pkg-config already exist!"
+    else
+        # should work with pkg-config-0.29.1.tar.gz
+        echo "begin build pkg-config ...\n"
+        cd ${CMPL}
+        tar xzpf ${MES}/pkg-config-*.tar.gz
+        cd pkg-config-*
+        make clean
+        export LDFLAGS="-framework Foundation -framework Cocoa"
+        ./configure --prefix=${TARGET} --with-pc-path=${TARGET}/lib/pkgconfig --with-internal-glib && make -j 8 && make install
+        if [[ $? != 0 ]];then
+            exit 1
+        fi
+        unset LDFLAGS
+    fi
+    echo "----------------------"
+
+
+    echo "\n--------------------"
+    echo "[*] check ysam"
+    # next, yasm
+    which yasm
+    if [[ $? == 0 ]];then
+        echo "✅ysam already exist!"
+    else
+        # should work with yasm-1.3.0.tar.gz
+        echo "begin build ysam ...\n"
+        cd ${CMPL}
+        tar xzpf ${MES}/yasm*.tar.gz
+        cd yasm-*
+        make clean
+        ./configure --prefix=${TARGET} && make -j 8 && make install
+        if [[ $? != 0 ]];then
+            exit 1
+        fi
+    fi
+    echo "----------------------"
+
+
+    echo "\n--------------------"
+    echo "[*] check libressl"
+    # next, libressl
+    # pkg-config --libs openssl
+    if [[ -f "${TARGET}/lib/libtls.a" && -f "${TARGET}/lib/libssl.a"  && -f "${TARGET}/lib/libcrypto.a" ]];then
+        echo "✅libressl already exist!"
+    else
+        # should work with libressl-2.4.2.tar.gz
+        echo "begin build libressl ...\n"
+        cd ${CMPL}
+        tar xzpf ${MES}/libressl-*tar.gz
+        cd libressl*
+        make clean
+        ./configure --prefix=${TARGET} --enable-static && make -j 8 && make -s install
+        if [[ $? != 0 ]];then
+            exit 1
+        else
+            clean_dylib
+        fi
+    fi
+    echo "----------------------"
+
+    if [[ $1 ]];then
+        build_denpendents_extensiton
+    fi
 
     echo "\n--------------------"
     echo "[*] check ffmpeg"
@@ -382,21 +402,45 @@ function build_denpendents(){
     # technically, I could simply build a full blown ffmpeg with third party libraries
     # but as they are mostly used for encoding and mpv is a media player
     # there is no real need to do it. But you could, if you wanted to :-)
-    if [[ -f "${TARGET}/lib/libavcodec.a" && -f "${TARGET}/lib/libavformat.a" && -f "${TARGET}/lib/libavutil.a" ]];then
+
+    # pkg-config --libs libavcodec
+    # e_libavcodec=$?
+
+    # pkg-config --libs libavformat
+    # e_libavformat=$?
+
+    # pkg-config --libs libavutil
+    # e_libavutil=$?
+
+    # pkg-config --libs libavdevice
+    # e_libavdevice=$?
+
+    # pkg-config --libs libavfilter
+    # e_libavfilter=$?
+
+    # pkg-config --libs libswresample
+    # e_libswresample=$?
+
+    # pkg-config --libs libswscale
+    # e_libswscale=$?
+
+    # if [[ $e_libavcodec == 0 && $e_libavformat == 0 && $e_libavutil == 0 && $e_libavdevice == 0 && $e_libavfilter == 0 && $e_libswresample == 0 && $e_libswscale == 0 ]];then
+    if [[ -f "${TARGET}/lib/libavcodec.a" && -f "${TARGET}/lib/libavformat.a" && -f "${TARGET}/lib/libavutil.a" && -f "${TARGET}/lib/libavdevice.a" && -f "${TARGET}/lib/libavfilter.a" && -f "${TARGET}/lib/libswresample.a" && -f "${TARGET}/lib/libswscale.a" ]];then
         echo "✅ffmpeg already exist!"
     else
         # should work with ffmpeg-4.1.tar.gz
         echo "begin build ffmpeg ...\n"
         cd ${CMPL}
-        if [[ -d "ffmpeg" ]];then
-            cd "ffmpeg"
-            git fetch --all --tags
-        else
+        if [[ ! -d "ffmpeg" ]];then
             git clone --reference "${MES}/ffmpeg" "https://gitee.com/mattreach/FFmpeg.git" "ffmpeg"
             cd "ffmpeg"
+            git checkout "$FF_TAG" -B mr
+            cp -r "${MES}/patch/ffmpeg" "${CMPL}"
+            cd -
         fi
 
-        make clean
+        cd "ffmpeg"
+        make clean  
         ./configure --prefix=${TARGET} \
             --target-os=darwin \
             --arch=x86_64 \
@@ -411,10 +455,6 @@ function build_denpendents(){
             exit 1
         fi
 
-        if [ ! -e $TARGET/bin/ffmpeg ];then
-            echo "Build failed (ffmpeg). KABOOM"
-            exit 1
-        fi
     fi
     echo "----------------------"
 
@@ -446,9 +486,7 @@ function build_mpv(){
     # Without this the configure line will(!) fail
     export PKG_CONFIG=pkg-config
     
-    export AR='/usr/bin/ar' #by xql
-    # something broke finding "ar", this is a crude way to fix it
-    #sed '/ctx.find_program.ar/d' -i wscript
+    export AR='/usr/bin/ar'
 
     CONF_FLAGS="$CONF_FLAGS --enable-lgpl"
     CONF_FLAGS="$CONF_FLAGS --enable-libmpv-static"
@@ -477,6 +515,7 @@ function build_mpv(){
     if [[ $? != 0 ]];then
             exit 1
     fi
+
     ./waf build
     if [[ $? != 0 ]];then
             exit 1
