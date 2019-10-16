@@ -190,6 +190,32 @@ function clean_dylib(){
     rm ${TARGET_DIR}/lib/*.dylib
 }
 
+function copy_extenstion_lib(){
+    lib="$1"
+    p=$(pkg-config --libs-only-L --silence-errors $lib)
+    if [[ $? == 0 ]];then
+        echo "copied: $lib"
+        p=$(echo "$p" | sed 's/-L//' )
+        cp -pf "$p"/*.a "${TARGET_DIR}/lib"
+
+        dir=$(dirname "$p")
+        p="$dir/include"
+        cp -pfr "$p" "${TARGET_DIR}"
+
+    else
+        echo "❌can't find $lib."
+    fi
+}
+
+function copy_extenstion_libs(){
+    libs=('libjpeg' 'x264' 'fribidi' 'harfbuzz' 'freetype2' 'libass' )
+
+    for lib in ${libs[@]};do
+        copy_extenstion_lib $lib
+    done
+
+}
+
 function build_denpendents_extensiton(){
 
     echo "\n--------------------"
@@ -393,9 +419,10 @@ function build_denpendents(){
     fi
     echo "----------------------"
 
-    if [[ $1 ]];then
-        build_denpendents_extensiton
-    fi
+    echo "\n--------------------"
+    echo "will find extenstion libs use pkg-config"
+    copy_extenstion_libs
+    echo "----------------------"
 
     echo "\n--------------------"
     echo "[*] check ffmpeg"
@@ -443,7 +470,7 @@ function build_denpendents(){
         cd "ffmpeg"
         make clean  
         ./configure --prefix=${TARGET_DIR} \
-            --TARGET_DIR-os=darwin \
+            --target-os=darwin \
             --arch=x86_64 \
             --extra-cflags="-I${TARGET_DIR}/include" \
             --extra-ldflags="-L${TARGET_DIR}/lib" \
