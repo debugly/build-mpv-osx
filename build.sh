@@ -1,6 +1,21 @@
 #brew install docutils libpng libffi pcre glib fontconfig pixman cairo gobject-introspection icu4c harfbuzz lame x264 xvid libtiff little-cms2 libxml2
 
-FF_TAG='n4.2.1'
+USE_IJK_FF=1
+if [[ "$USE_IJK_FF" == 0 ]];then
+    FF_TAG='ff4.0--ijk0.8.25--20191024--001' #'n4.2.1'
+    FF_DIR='ffmpeg-ijk'
+    FF_GIT='https://github.com/Bilibili/FFmpeg.git'
+else
+    FF_TAG='n4.2.1'
+    FF_DIR='ffmpeg'
+    FF_GIT='https://gitee.com/mattreach/FFmpeg.git'
+fi
+
+MPV_TAG='v0.30.0'
+MPV_DIR='mpv'
+MPV_GIT='https://gitee.com/mattreach/mpv_fork.git'
+
+
 # use the llvm compiler
 export CC="/usr/bin/clang"
 export CXX="/usr/bin/clang++"
@@ -106,7 +121,6 @@ function read_input(){
                 "${TARGET_DIR}/include/libswscale" \
                 "${TARGET_DIR}/include/libavfilter" \
 
-            rm "${TARGET_DIR}/include/tls.h"
             rm "${TARGET_DIR}/lib/"libavcodec.* \
             "${TARGET_DIR}/lib/"libavformat.* \
             "${TARGET_DIR}/lib/"libavutil.* \
@@ -188,6 +202,7 @@ function clean_dylib(){
     # get rid of the dynamically loadable libraries
     # to force it to use the static version for compilation
     rm ${TARGET_DIR}/lib/*.dylib
+    rm ${TARGET_DIR}/lib/*.la
 }
 
 function copy_extenstion_lib(){
@@ -426,6 +441,9 @@ function build_denpendents(){
 
     echo "\n--------------------"
     echo "[*] check ffmpeg"
+    echo '-----------------'
+    echo "will use $FF_DIR $FF_TAG [$FF_GIT]"
+    echo '-----------------'
     # next, ffmpeg
     # technically, I could simply build a full blown ffmpeg with third party libraries
     # but as they are mostly used for encoding and mpv is a media player
@@ -457,17 +475,20 @@ function build_denpendents(){
         echo "✅ffmpeg already exist!"
     else
         # should work with ffmpeg-4.1.tar.gz
-        echo "begin build ffmpeg ...\n"
+        echo "begin build ${FF_DIR} ...\n"
         cd ${BUILD_DIR}
-        if [[ ! -d "ffmpeg" ]];then
-            git clone --reference "${SOURCE_DIR}/ffmpeg" "https://gitee.com/mattreach/FFmpeg.git" "ffmpeg"
-            cd "ffmpeg"
-            git checkout "$FF_TAG" -B mr
-            cp -r "${SOURCE_DIR}/patch/ffmpeg" "${BUILD_DIR}"
+
+        if [[ ! -d "${FF_DIR}" ]];then
+            git clone --reference "${SOURCE_DIR}/${FF_DIR}" "${FF_GIT}" "${FF_DIR}"
+            cd "${FF_DIR}"
+            git checkout "$FF_TAG" -B mr_ffmpeg
             cd -
         fi
 
-        cd "ffmpeg"
+        #echo "copy ffmepg patch"
+        #cp -r "${SOURCE_DIR}/patch/ffmpeg" "${BUILD_DIR}"
+
+        cd "${FF_DIR}"
         make clean  
         ./configure --prefix=${TARGET_DIR} \
             --target-os=darwin \
@@ -495,20 +516,25 @@ function build_denpendents(){
 
 function build_mpv(){
     echo "begin build mpv"
+
+    echo '-----------------'
+    echo "will use $MPV_DIR $MPV_TAG [$MPV_GIT]"
+    echo '-----------------'
+
     cd ${BUILD_DIR}
 
-    if [[ -d "mpv" ]];then
-        cd "mpv"
-        git fetch --all --tags
-    else
-        git clone --reference "${SOURCE_DIR}/mpv" "https://gitee.com/mattreach/mpv_fork.git" "mpv"
-        cd "mpv"
+    if [[ ! -d "${MPV_DIR}" ]];then
+        git clone --reference "${SOURCE_DIR}/${MPV_DIR}" "${MPV_GIT}" "${MPV_DIR}"
+        cd "${MPV_DIR}"
+        git checkout "$MPV_TAG" -B mr_mpv
+        cd -
     fi
 
     # And mpv just had to use yet another different build system
     # people just have too much time reinventing the wheel....
     # This time, it is some python hell called 'was'
-
+    
+    cd "${MPV_DIR}"
     ./bootstrap.py
 
     # Without this the configure line will(!) fail

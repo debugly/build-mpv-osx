@@ -16,6 +16,7 @@ luaJITTag='2.0.5'
 
 MPVSourceGit="https://gitee.com/mattreach/mpv_fork.git" # "https://github.com/mpv-player/mpv.git"
 FFSourceGit="https://gitee.com/mattreach/FFmpeg.git"
+FFSourceGit_IJK="https://github.com/Bilibili/FFmpeg.git"
 
 yasm="yasm-${yasmTag}.tar.gz"
 if [ ! -f $yasm ];then
@@ -144,6 +145,7 @@ function clone_source()
 }
 
 clone_source "ffmpeg" "$FFSourceGit"
+# clone_source "ffmpeg-ijk" "$FFSourceGit_IJK"
 clone_source "mpv" "$MPVSourceGit"
 
 echo "✅ ======== All dependency lib download succeed! ========"
